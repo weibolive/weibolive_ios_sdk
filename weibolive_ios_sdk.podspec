@@ -1,5 +1,5 @@
 Pod::Spec.new do |s|
-  s.name         = "WeiboLiveSDK"
+  s.name         = "weibolive_ios_sdk"
   s.homepage     = "https://github.com/weibolive/weibolive_ios_sdk"
   s.summary      = "WeiboLiveSDK on iOS."
   s.author       = { "guilu" => "guilu@staff.weibo.com" }
