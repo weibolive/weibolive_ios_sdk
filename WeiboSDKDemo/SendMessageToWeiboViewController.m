@@ -11,6 +11,18 @@
 #import "WeiboSDK.h"
 #import "WeiboSDK+Statistics.h"
 #import "WeiboLiveSDK.h"
+#import "WBIMLiveManager.h"
+#import "WBIMLiveListener.h"
+#pragma "WBIMPushMessageModel.h"
+#import "WBIMBaseRequest.h"
+#import "WBIMUser.h"
+#import "WBIMBundle.h"
+
+
+#define kTest_RoomId @""
+#define kTest_UserId @""
+#define kTest_UserName @""
+#define kTest_Token @""
 
 @interface WBDataTransferObject ()
 //@property (nonatomic, readonly) WeiboSDK3rdApp *app;
@@ -23,7 +35,7 @@
 #endif
 @end
 
-@interface SendMessageToWeiboViewController()<UIScrollViewDelegate>
+@interface SendMessageToWeiboViewController()<UIScrollViewDelegate, WBIMLiveListener>
 -(UITextView*)createSubView:(UILabel*) label labelvalue:(NSString*)labelvalue labelrect:(CGRect)labelrect text:(UITextView*)text textvalue:(NSString*)textvalue rect:(CGRect)textrect scrollView:(UIScrollView*) scrollView;
 -(void)initSubView;
 
@@ -80,6 +92,11 @@
 @property (nonatomic, strong) UITextView *textDeleteID;
 
 @property (nonatomic, strong) UISwitch * textSwitch;
+
+@property (nonatomic, strong) UITextField *roomIdTextField;
+@property (nonatomic, strong) UITextField *joinRoomTokenTextField;
+@property (nonatomic, strong) UITextField *userIdTextField;
+@property (nonatomic, strong) UITextView *pushMsgTextView;
 
 @end
 
@@ -147,7 +164,7 @@
     scrollView.showsHorizontalScrollIndicator = YES;
     scrollView.delegate = self;
     [self.view addSubview:scrollView];
-    [scrollView setContentSize:CGSizeMake(self.view.frame.size.width, self.view.frame.size.height*3)];
+    [scrollView setContentSize:CGSizeMake(self.view.frame.size.width, self.view.frame.size.height*5)];
     
     
     self.titleLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, height, 300, 30)];
@@ -206,34 +223,33 @@
     createliveButton.frame = CGRectMake(20, height, 280, 40);
     [scrollView addSubview:createliveButton];
     
-    height += 30;
+    height += 35;
     UILabel *createLiveLabelInput = nil;
     UITextView *createliveText = nil;
     self.textCreateInput = [self createSubView:createLiveLabelInput labelvalue:@"参数" labelrect:CGRectMake(15, height, 50, 30) text:createliveText textvalue:@"" rect:CGRectMake(70, height, 230, 60) scrollView:scrollView ];
 
-    height += 60;
-    height += 5;
+    height += 35;
 ///////
     UILabel *create_token_label = nil;
     UITextView *create_token_text = nil;
     self.textCreateToken = [self createSubView:create_token_label labelvalue:@"token" labelrect:CGRectMake(15, height, 60, 30) text:create_token_text textvalue:@"" rect:CGRectMake(70, height, 230, 30) scrollView:scrollView ];
 
-    height += 30;
+    height += 35;
     UILabel *create_title_label = nil;
     UITextView *create_title_text = nil;
     self.textCreateTitle = [self createSubView:create_title_label labelvalue:@"title" labelrect:CGRectMake(15, height, 60, 30) text:create_title_text textvalue:@"" rect:CGRectMake(70, height, 230, 30) scrollView:scrollView ];
   
-    height += 30;
+    height += 35;
     UILabel *create_width_label = nil;
     UITextView *create_width_text = nil;
     self.textCreateWidth = [self createSubView:create_width_label labelvalue:@"width" labelrect:CGRectMake(15, height, 60, 30) text:create_width_text textvalue:@"" rect:CGRectMake(70, height, 230, 30) scrollView:scrollView ];
   
-    height += 30;
+    height += 35;
     UILabel *create_height_label = nil;
     UITextView *create_height_text = nil;
     self.textCreateHeight = [self createSubView:create_height_label labelvalue:@"height" labelrect:CGRectMake(15, height, 60, 30) text:create_height_text textvalue:@"" rect:CGRectMake(70, height, 230, 30) scrollView:scrollView ];
     
-    height += 30;
+    height += 35;
     UILabel *create_summary_label = nil;
     UITextView *create_summary_text = nil;
     self.textCreateSummary = [self createSubView:create_summary_label labelvalue:@"summary" labelrect:CGRectMake(15, height, 60, 30) text:create_summary_text textvalue:@"" rect:CGRectMake(70, height, 170, 30) scrollView:scrollView ];
@@ -241,7 +257,7 @@
     self.switchCreateSummary.on = NO;
     [scrollView addSubview:self.switchCreateSummary];
    
-    height += 30;
+    height += 35;
     UILabel *create_published_label = nil;
     UITextView *create_published_text = nil;
     self.textCreatePublished = [self createSubView:create_published_label labelvalue:@"published" labelrect:CGRectMake(15, height, 60, 30) text:create_published_text textvalue:@"" rect:CGRectMake(70, height, 170, 30) scrollView:scrollView ];
@@ -249,7 +265,7 @@
     self.switchCreatePublished.on = NO;
     [scrollView addSubview:self.switchCreatePublished];
    
-    height += 30;
+    height += 35;
     UILabel *create_image_label = nil;
     UITextView *create_image_text = nil;
     self.textCreateImage = [self createSubView:create_image_label labelvalue:@"image" labelrect:CGRectMake(15, height, 60, 30) text:create_image_text textvalue:@"" rect:CGRectMake(70, height, 170, 30) scrollView:scrollView ];
@@ -257,7 +273,7 @@
     self.switchCreateImage.on = NO;
     [scrollView addSubview:self.switchCreateImage];
     
-    height += 30;
+    height += 35;
     UILabel *create_replay_label = nil;
     UITextView *create_replay_text = nil;
     self.textCreateReplay = [self createSubView:create_replay_label labelvalue:@"replay" labelrect:CGRectMake(15, height, 60, 30) text:create_replay_text textvalue:@"" rect:CGRectMake(70, height, 170, 30) scrollView:scrollView ];
@@ -265,7 +281,7 @@
     self.switchCreateReplay.on = NO;
     [scrollView addSubview:self.switchCreateReplay];
 
-    height += 30;
+    height += 35;
     UILabel *create_pano_label = nil;
     UITextView *create_pano_text = nil;
     self.textCreatePano = [self createSubView:create_pano_label labelvalue:@"pano" labelrect:CGRectMake(15, height, 60, 30) text:create_pano_text textvalue:@"" rect:CGRectMake(70, height, 170, 30) scrollView:scrollView ];
@@ -277,30 +293,30 @@
     
     
     ///////
-    height += 30;
+    height += 60;
     UIButton *updateliveButton = [UIButton buttonWithType:UIButtonTypeRoundedRect];
     [updateliveButton setTitle:@"更新直播" forState:UIControlStateNormal];
     [updateliveButton addTarget:self action:@selector(updateLive) forControlEvents:UIControlEventTouchUpInside];
     updateliveButton.frame = CGRectMake(20, height, 280, 40);
     [scrollView addSubview:updateliveButton];
     
-    height += 30;
+    height += 35;
     UILabel *updateLiveLabelInput = nil;
     UITextView *updateliveText = nil;
     self.textUpdateInput = [self createSubView:updateLiveLabelInput labelvalue:@"参数" labelrect:CGRectMake(15, height, 50, 30) text:updateliveText textvalue:@"" rect:CGRectMake(70, height, 230, 60) scrollView:scrollView ];
   
     
-    height += 60;
+    height += 35;
     UILabel *update_token_label = nil;
     UITextView *update_token_text = nil;
     self.textUpdateToken = [self createSubView:update_token_label labelvalue:@"token" labelrect:CGRectMake(15, height, 60, 30) text:update_token_text textvalue:@"" rect:CGRectMake(70, height, 230, 30) scrollView:scrollView ];
   
-    height += 30;
+    height += 35;
     UILabel *update_id_label = nil;
     UITextView *update_id_text = nil;
     self.textUpdateID = [self createSubView:update_id_label labelvalue:@"id" labelrect:CGRectMake(15, height, 60, 30) text:update_id_text textvalue:@"" rect:CGRectMake(70, height, 230, 30) scrollView:scrollView ];
 
-    height += 30;
+    height += 35;
     UILabel *update_title_label = nil;
     UITextView *update_title_text = nil;
     self.textUpdateTitle = [self createSubView:update_title_label labelvalue:@"title" labelrect:CGRectMake(15, height, 60, 30) text:update_title_text textvalue:@"" rect:CGRectMake(70, height, 170, 30) scrollView:scrollView ];
@@ -308,7 +324,7 @@
     self.switchUpdateTitle.on = NO;
     [scrollView addSubview:self.switchUpdateTitle];
    
-    height += 30;
+    height += 35;
     UILabel *update_summary_label = nil;
     UITextView *update_summary_text = nil;
     self.textUpdateSummary = [self createSubView:update_summary_label labelvalue:@"summary" labelrect:CGRectMake(15, height, 60, 30) text:update_summary_text textvalue:@"" rect:CGRectMake(70, height, 170, 30) scrollView:scrollView ];
@@ -316,7 +332,7 @@
     self.switchUpdateSummary.on = NO;
     [scrollView addSubview:self.switchUpdateSummary];
   
-    height += 30;
+    height += 35;
     UILabel *update_published_label = nil;
     UITextView *update_published_text = nil;
     self.textUpdatePublished = [self createSubView:update_published_label labelvalue:@"published" labelrect:CGRectMake(15, height, 60, 30) text:update_published_text textvalue:@"" rect:CGRectMake(70, height, 170, 30) scrollView:scrollView ];
@@ -324,7 +340,7 @@
     self.switchUpdatePublished.on = NO;
     [scrollView addSubview:self.switchUpdatePublished];
     
-    height += 30;
+    height += 35;
     UILabel *update_image_label = nil;
     UITextView *update_image_text = nil;
     self.textUpdateImage = [self createSubView:update_image_label labelvalue:@"image" labelrect:CGRectMake(15, height, 60, 30) text:update_image_text textvalue:@"" rect:CGRectMake(70, height, 170, 30) scrollView:scrollView ];
@@ -332,7 +348,7 @@
     self.switchUpdateImage.on = NO;
     [scrollView addSubview:self.switchUpdateImage];
   
-    height += 30;
+    height += 35;
     UILabel *update_stop_label = nil;
     UITextView *update_stop_text = nil;
     self.textUpdateStop = [self createSubView:update_stop_label labelvalue:@"stop" labelrect:CGRectMake(15, height, 60, 30) text:update_stop_text textvalue:@"" rect:CGRectMake(70, height, 170, 30) scrollView:scrollView ];
@@ -340,7 +356,7 @@
     self.switchUpdateStop.on = NO;
     [scrollView addSubview:self.switchUpdateStop];
    
-    height += 30;
+    height += 35;
     UILabel *update_replay_label = nil;
     UITextView *update_replay_text = nil;
     self.textUpdateReplayurl = [self createSubView:update_replay_label labelvalue:@"replayurl" labelrect:CGRectMake(15, height, 60, 30) text:update_replay_text textvalue:@"" rect:CGRectMake(70, height, 170, 30) scrollView:scrollView ];
@@ -368,12 +384,12 @@
     UITextView *show_token_text = nil;
     self.textShowToken = [self createSubView:show_token_label labelvalue:@"token" labelrect:CGRectMake(15, height, 60, 30) text:show_token_text textvalue:@"" rect:CGRectMake(70, height, 230, 30) scrollView:scrollView ];
    
-    height += 30;
+    height += 35;
     UILabel *show_id_label = nil;
     UITextView *show_id_text = nil;
     self.textShowID = [self createSubView:show_id_label labelvalue:@"id" labelrect:CGRectMake(15, height, 60, 30) text:show_id_text textvalue:@"" rect:CGRectMake(70, height, 230, 30) scrollView:scrollView ];
     
-    height += 30;
+    height += 35;
     UILabel *show_detail_label = nil;
     UITextView *show_detail_text = nil;
     self.textShowDetail = [self createSubView:show_detail_label labelvalue:@"detail" labelrect:CGRectMake(15, height, 60, 30) text:show_detail_text textvalue:@"" rect:CGRectMake(70, height, 170, 30) scrollView:scrollView ];
@@ -390,24 +406,121 @@
     deleteliveButton.frame = CGRectMake(20, height, 280, 40);
     [scrollView addSubview:deleteliveButton];
     
-    height += 30;
+    height += 35;
     UILabel *deleteLiveLabelInput = nil;
     UITextView *deleteliveText = nil;
     self.textDeleteInput = [self createSubView:deleteLiveLabelInput labelvalue:@"参数" labelrect:CGRectMake(15, height, 50, 30) text:deleteliveText textvalue:@"" rect:CGRectMake(70, height, 230, 60) scrollView:scrollView ];
  
     
+    ///
     height += 60;
     UILabel *delete_token_label = nil;
     UITextView *delete_token_text = nil;
     self.textDeleteToken = [self createSubView:delete_token_label labelvalue:@"token" labelrect:CGRectMake(15, height, 60, 30) text:delete_token_text textvalue:@"" rect:CGRectMake(70, height, 230, 30) scrollView:scrollView ];
     
-    height += 30;
+    height += 35;
     UILabel *delete_id_label = nil;
     UITextView *delete_id_text = nil;
     self.textDeleteID =  [self createSubView:delete_id_label labelvalue:@"id" labelrect:CGRectMake(15, height, 60, 30) text:delete_id_text textvalue:@"" rect:CGRectMake(70, height, 230, 30) scrollView:scrollView ];
     
     
+    
+    
+    // 互动相关
+    
+    height += 55;
+    
+    CGFloat width = self.view.frame.size.width;
+    
+    UIView *splitView = [[UIView alloc] initWithFrame:CGRectMake(0, height, width, 1)];
+    splitView.backgroundColor = [UIColor redColor];
+    [scrollView addSubview:splitView];
+    
+    
+    height = CGRectGetMaxY(splitView.frame) + 5;
+    UIButton *joinRoomBtn = [UIButton buttonWithType:UIButtonTypeRoundedRect];
+    joinRoomBtn.layer.cornerRadius = 15;
+    joinRoomBtn.layer.borderWidth = 1;
+    joinRoomBtn.layer.borderColor = [UIColor greenColor].CGColor;
+    [joinRoomBtn setTitle:@"加入房间" forState:UIControlStateNormal];
+    [joinRoomBtn addTarget:self action:@selector(onJoinRoomBtnPressed:) forControlEvents:UIControlEventTouchUpInside];
+    
+    UIButton *exitRoomBtn = [UIButton buttonWithType:UIButtonTypeRoundedRect];
+    exitRoomBtn.layer.cornerRadius = 15;
+    exitRoomBtn.layer.borderWidth = 1;
+    exitRoomBtn.layer.borderColor = [UIColor greenColor].CGColor;
+    [exitRoomBtn setTitle:@"退出房间" forState:UIControlStateNormal];
+    [exitRoomBtn addTarget:self action:@selector(onExitRoomBtnPressed:) forControlEvents:UIControlEventTouchUpInside];
+    
+    joinRoomBtn.frame = CGRectMake(10, height, (width - 40)/2.f, 30.f);
+    exitRoomBtn.frame = CGRectMake(width/2.f + 10, height, (width - 40)/2.f, 30.f);
+    
+    [scrollView addSubview:joinRoomBtn];
+    [scrollView addSubview:exitRoomBtn];
+    
+    // 房间id
+    height = CGRectGetMaxY(joinRoomBtn.frame) + 5;
+    CGFloat padding = 10;
+    UILabel *roomidLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, height, width, 30.f)];
+    roomidLabel.text = @"房间id:";
+    [scrollView addSubview:roomidLabel];
+    
+    height = CGRectGetMaxY(roomidLabel.frame) + 5;
+    self.roomIdTextField = [[UITextField alloc] initWithFrame:CGRectMake(padding, height, width-padding*2, 30.f)];
+    self.roomIdTextField.layer.borderWidth = 1;
+    self.roomIdTextField.layer.borderColor = [UIColor grayColor].CGColor;
+    self.roomIdTextField.text = kTest_RoomId;//@"1042097:bf0dc624a1081ac6b08c6caad7356c8a";
+    [scrollView addSubview:self.roomIdTextField];
+    
+    // token
+    height = CGRectGetMaxY(self.roomIdTextField.frame) + 5;
+    UILabel *joinRoomTokenLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, height, width, 30.f)];
+    joinRoomTokenLabel.text = @"token:";
+    [scrollView addSubview:joinRoomTokenLabel];
+    
+    height = CGRectGetMaxY(joinRoomTokenLabel.frame) + 5;
+    self.joinRoomTokenTextField = [[UITextField alloc] initWithFrame:CGRectMake(padding, height, width-padding*2, 30.f)];
+    self.joinRoomTokenTextField.layer.borderWidth = 1;
+    self.joinRoomTokenTextField.layer.borderColor = [UIColor grayColor].CGColor;
+    self.joinRoomTokenTextField.text = kTest_Token;//@"2.00XPF6kGheU7qB6747b840fdqvGzvD";
+    [scrollView addSubview:self.joinRoomTokenTextField];
+    
+    // id
+    height = CGRectGetMaxY(self.joinRoomTokenTextField.frame) + 5;
+    UILabel *joinRoomUserIdLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, height, width, 30.f)];
+    joinRoomUserIdLabel.text = @"用户id:";
+    [scrollView addSubview:joinRoomUserIdLabel];
+    
+    height = CGRectGetMaxY(joinRoomUserIdLabel.frame) + 5;
+    self.userIdTextField = [[UITextField alloc] initWithFrame:CGRectMake(padding, height, width-padding*2, 30.f)];
+    self.userIdTextField.layer.borderWidth = 1;
+    self.userIdTextField.layer.borderColor = [UIColor grayColor].CGColor;
+    self.userIdTextField.text = kTest_UserId;//@"6182486831";
+    [scrollView addSubview:self.userIdTextField];
+    
+    // msg
+    height = CGRectGetMaxY(self.userIdTextField.frame) + 5;
+    UILabel *pushMsgLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, height, width, 30.f)];
+    pushMsgLabel.text = @"下发消息:";
+    [scrollView addSubview:pushMsgLabel];
+    
+    height = CGRectGetMaxY(pushMsgLabel.frame) + 5;
+    self.pushMsgTextView = [[UITextView alloc] initWithFrame:CGRectMake(padding, height, width-padding*2, 160.f)];
+    self.pushMsgTextView.layer.borderWidth = 1;
+    self.pushMsgTextView.layer.borderColor = [UIColor grayColor].CGColor;
+    [scrollView addSubview:self.pushMsgTextView];
+    
+    
+    [scrollView setContentSize:CGSizeMake(self.view.frame.size.width, height + 200)];
+    
     [self initSubView];
+    
+    [self _registerSDK];
+    [[WBIMLiveManager sharedInstance] addListener:self];
+}
+
+- (void)viewWillUnload {
+    [[WBIMLiveManager sharedInstance] removeListener:self];
 }
 
 - (void)viewWillAppear:(BOOL)animated
@@ -422,6 +535,14 @@
     [super viewWillDisappear:animated];
 }
 
+- (void)showAlert:(NSString*)title content:(NSString*)content {
+    UIAlertView *alert = [[UIAlertView alloc] initWithTitle:title
+                                       message:content
+                                      delegate:nil
+                             cancelButtonTitle:NSLocalizedString(@"确定", nil)
+                             otherButtonTitles:nil];
+    [alert show];
+}
 
 - (void)request:(WBHttpRequest *)request didFinishLoadingWithResult:(NSString *)result
 {
@@ -474,6 +595,7 @@
 - (void)createLive{
     NSData* data = nil;
     NSString* result  = nil;
+    
     if(self.textSwitch.on){
         NSString* accesstoken = self.textToken.text;
         NSString* content = content =  self.textCreateInput.text;
@@ -539,13 +661,18 @@
             self.textUpdateID.text = liveid;
             self.textShowID.text = liveid;
             self.textDeleteID.text = liveid;
+            
+            // 创建完成之后，更新到互动哪里
+            self.userIdTextField.text = self.textUid.text;
+            self.joinRoomTokenTextField.text = accesstoken ? accesstoken : @"";
+            self.roomIdTextField.text = room_id;
         }
     }
     
-    NSString *title = @"创建直播返回消息";
+    NSString *alert_title = @"创建直播返回消息";
     UIAlertView *alert = nil;
     
-    alert = [[UIAlertView alloc] initWithTitle:title
+    alert = [[UIAlertView alloc] initWithTitle:alert_title
                                        message:result
                                       delegate:nil
                              cancelButtonTitle:NSLocalizedString(@"确定", nil)
@@ -556,6 +683,7 @@
 - (void)updateLive{
     NSData* data = nil;
     NSString* result  = nil;
+
     if(self.textSwitch.on){
         NSString* accesstoken = self.textToken.text;
         NSString* content = content =  self.textUpdateInput.text;
@@ -594,10 +722,10 @@
         result = [self.weiboLiveSDK updateLive:token liveid:liveid title:title summary:summary published:published image:image stop:stop replay_url:replayurl];
     }
     
-    NSString *title = @"更新直播返回消息";
+    NSString *alert_title = @"更新直播返回消息";
     UIAlertView *alert = nil;
     
-    alert = [[UIAlertView alloc] initWithTitle:title
+    alert = [[UIAlertView alloc] initWithTitle:alert_title
                                        message:result
                                       delegate:nil
                              cancelButtonTitle:NSLocalizedString(@"确定", nil)
@@ -609,6 +737,7 @@
 
     NSData* data = nil;
     NSString* result  = nil;
+    
     if(self.textSwitch.on){
         NSString* accesstoken = self.textToken.text;
         NSString* content = self.textShowInput.text;
@@ -747,5 +876,169 @@
     }
 }
 
+- (void)scrollViewDidScroll:(UIScrollView *)scrollView {
+    [self setEditing:NO];
+}
+
+#pragma mark - interaction
+- (void)_registerSDK {
+    WBIMUser *user = [[WBIMUser alloc] init];
+    user.uid = 2608799093;
+    user.nickname = @"jokan";
+    user.token = @"2.00C5euDEMhHgLIcee3fe37c4ILZqLC";
+    WBIMBundle *bundle = [[WBIMBundle alloc] init];
+    bundle.userAgent = @"x86_64__weibo__6.6.1__iphone__os9.3";
+    bundle.from = @"1066193010";
+    bundle.wm = @"3333_2001";
+    [[WBIMLiveManager sharedInstance] registerWithBundle:bundle user:user];
+}
+
+- (void)onJoinRoomBtnPressed:(UIView*)sender {
+    NSString *token = self.joinRoomTokenTextField.text;
+    NSString *userId = self.userIdTextField.text;
+    NSString *roomId = self.roomIdTextField.text;
+    NSString *name = @"";
+    
+    WBIMUser *user = [[WBIMUser alloc] init];
+    user.uid = [userId longLongValue];
+    user.nickname = name;
+    user.token = token;
+    WBIMBundle *bundle = [[WBIMBundle alloc] init];
+    //bundle.userAgent = @"x86_64__weibo__6.6.1__iphone__os9.3";
+    //bundle.from = @"1066193010";
+    //bundle.wm = @"3333_2001";
+    
+    bundle.userAgent = @"abc";
+    bundle.from = @"abc";
+    bundle.wm = @"abc";
+    
+    [[WBIMLiveManager sharedInstance] changeUser:user bundle:bundle];
+    
+    WBIMJoinRoomRequest *request = [[WBIMJoinRoomRequest alloc] init];
+    request.roomId = roomId;
+    [[WBIMLiveManager sharedInstance] joinLiveRoom:request succ:^(NSString *requestId, WBIMJoinRoomModel *response) {
+        [self showAlert:@"提示" content:@"加入房间成功"];
+    } fail:^(NSString *requestId, NSInteger code, NSString *msg) {
+        NSString *info = [NSString stringWithFormat:@"加入房间失败， code = %ld, msg = %@", code, msg];
+        [self showAlert:@"警告" content:info];
+    }];
+}
+
+- (void)onExitRoomBtnPressed:(UIView*)sender {
+    
+    WBIMExitRoomRequest *request = [[WBIMExitRoomRequest alloc] init];
+    request.roomId = self.roomIdTextField.text;
+    [[WBIMLiveManager sharedInstance] exitLiveRoom:request succ:^(NSString *requestId) {
+        self.pushMsgTextView.text = @"";
+        [self showAlert:@"提示" content:@"退出房间成功"];
+    } fail:^(NSString *requestId, NSInteger code, NSString *msg) {
+        [self showAlert:@"警告" content:@"退出房间失败"];
+    }];
+}
+
+#pragma mark - WBIMLiveListener
+- (void)didPushConnectionConnect {
+    NSLog(@"互动链接");
+}
+- (void)didPushConnectionDisconnect:(NSInteger)errCode errMsg:(NSString *)errMsg {
+    [self showAlert:@"警告" content:@"互动断开"];
+}
+
+- (void)onNewMessage:(WBIMPushMessageModel *)msg requestId:(NSString *)requestId errCode:(NSInteger)errCode
+              errMsg:(NSString *)errMsg {
+    if (!errCode) {
+        NSString *resInfo = [NSString stringWithFormat:@"requestId = %@, type = %ld, sysMsgType = %ld", requestId, msg.type, msg.sysMsgType];
+        NSString *typeInfo = @"";
+        switch (msg.type) {
+            case WBIMMsgText: // 聊天信息
+                typeInfo = @"聊天";
+                break;
+            case WBIMMsgPraise: // 赞
+                typeInfo = @"赞";
+                break;
+            case WBIMMsgLightAnchor: // 点亮主播
+                typeInfo = @"点亮主播";
+                break;
+            case WBIMMsgShutup: // 禁言 = 拉黑
+                typeInfo = @"禁言";
+                break;
+            case WBIMMsgRoomStatus: // 礼物消息
+                typeInfo = @"l礼物";
+                break;
+            case WBIMMsgNotification: // 公告
+                typeInfo = @"公告";
+                break;
+            case WBIMMsgShareLiveRoom: // 分享
+                typeInfo = @"分享";
+                break;
+            case WBIMMsgAttendAnchor: // 关注主播
+                typeInfo = @"关注主播";
+                break;
+            case WBIMMsgAddToChartm: // 加入购物车
+            case WBIMMsgCommodity: // 商品
+                break;
+            case WBIMMsgLiveStatusChange: // 直播状态
+                typeInfo = @"直播状态";
+                break;
+            case WBIMMsgJoinOrExitRoom: // 进出直播间
+                typeInfo = @"进入或退出房间";
+                break;
+            case WBIMMsgReward: // 打赏
+                break;
+            case WBIMMsgAdminChange: // 管理员变更 = 场控
+                typeInfo = @"管理员变更";
+                break;
+            case WBIMMsgSystem: // 系统消息
+                typeInfo = [self onSystemMessage:msg];
+                break;
+            case 16: {//WBIMMsgTop: // 置顶/取消置顶评论消息
+                typeInfo = @"置顶或取消置顶";
+                break;
+            }
+            case WBIMMsgCustom: // 自定义消息
+                break;
+            default:
+                break;
+        }
+        
+        NSString *outText = [NSString stringWithFormat:@"收到下发消息：%@， 类型：%@消息", resInfo, typeInfo];
+        NSMutableString *text = [[NSMutableString alloc] initWithString:self.pushMsgTextView.text];
+        [text appendFormat:@"%@\n\n", outText];
+        self.pushMsgTextView.text = text;
+    }
+}
+
+- (NSString*)onSystemMessage:(WBIMPushMessageModel*)msg {
+    if(!msg.extension || msg.extension.length == 0){
+        return @"";
+    }
+    
+    NSString *typeInfo = @"";
+    switch (msg.sysMsgType) {
+        case WBIMSysMsgShowcase: // 橱窗
+            typeInfo = @"橱窗";
+            break;
+        case WBIMSysMsgStreamMode: // 流状态
+            break;
+        case WBIMSysMsgDepositIssue: // 充值下发
+            typeInfo = @"充值下发";
+            break;
+        case WBIMSysMsgReview: // 审核
+            typeInfo = @"审核";
+            break;
+        case WBIMSysMsgActivityMark: // 活动角标
+            typeInfo = @"活动角标";
+            break;
+        case WBIMSysMsgUserList: // 观众列表
+            typeInfo = @"观众列表";
+            break;
+        case WBIMSysMsgAnchorCoinsChange: // 主播金币变化
+            typeInfo = @"主播金币变化";
+            break;
+        default:
+            break;
+    }
+    return typeInfo;
+}
 @end
 
